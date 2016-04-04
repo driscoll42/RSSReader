@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import java.io.IOException;
@@ -21,8 +22,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String mFileContents;
     private Button btnPS4;
     private Button btnXBone;
+    private Button btnAddLink;
+    private EditText addedLink;
     private ListView listApps;
-    //test line
 
 
     @Override
@@ -31,6 +33,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         listApps = (ListView) findViewById(R.id.xmlListView);
+
+        addedLink = (EditText) findViewById(R.id.addedLink);
+
+        Button btnAddLink = (Button) findViewById(R.id.btnAddLink);
+        btnAddLink.setOnClickListener(this);
 
         Button btnPS4 = (Button) findViewById(R.id.btnPS4);
         btnPS4.setOnClickListener(this);
@@ -60,6 +67,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ArrayAdapter<Application> arrayAdapterXbone = new ArrayAdapter<Application>(
                         MainActivity.this, R.layout.list_item, parseXBone.getApplications());
                 listApps.setAdapter(arrayAdapterXbone);
+                break;
+
+            case R.id.btnAddLink:
+                //"http://feeds.ign.com/ign/wii-u-all?format=xml"
+                new DownloadData().execute(addedLink.getText().toString());
+                ParseApplications parseAddedLink = new ParseApplications(mFileContents);
+                parseAddedLink.process();
+                ArrayAdapter<Application> arrayAdapterAddLink = new ArrayAdapter<Application>(
+                        MainActivity.this, R.layout.list_item, parseAddedLink.getApplications());
+                listApps.setAdapter(arrayAdapterAddLink);
                 break;
 
             default:
