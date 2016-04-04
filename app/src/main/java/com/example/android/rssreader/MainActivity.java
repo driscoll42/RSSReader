@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.btnAddLink:
-                //"http://feeds.ign.com/ign/wii-u-all?format=xml"
+                //TODO: Add some sort of check if a valid link, if not display an alert or such
                 new DownloadData().execute(addedLink.getText().toString());
                 ParseApplications parseAddedLink = new ParseApplications(mFileContents);
                 parseAddedLink.process();
