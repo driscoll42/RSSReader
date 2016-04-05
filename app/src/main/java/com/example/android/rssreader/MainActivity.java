@@ -40,11 +40,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         addedLink = (EditText) findViewById(R.id.addedLink);
 
-        sharedpreferences = getSharedPreferences(MyPREFERENCES, 0);
-        restoredText = sharedpreferences.getString(URLKey, null);
-
-        addedLink.setText(restoredText);
-
         listApps = (ListView) findViewById(R.id.xmlListView);
 
         Button btnAddLink = (Button) findViewById(R.id.btnAddLink);
@@ -57,6 +52,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnXBone.setOnClickListener(this);
 
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();  // Always call the superclass method first
+
+        sharedpreferences = getSharedPreferences(MyPREFERENCES, 0);
+        restoredText = sharedpreferences.getString(URLKey, null);
+
+        addedLink.setText(restoredText);
+
+    }
+
+
 
     public void onClick(View v) {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -106,17 +114,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    protected void onStop(){
-        super.onStop();
+    protected void onPause(){
+        super.onPause();
 
         // We need an Editor object to make preference changes.
         // All objects are from android.context.Context
         sharedpreferences = getSharedPreferences(MyPREFERENCES, 0);
         SharedPreferences.Editor editor = sharedpreferences.edit();
         editor.putString(URLKey, addedLink.getText().toString());
-        editor.commit();
-
-        // Commit the edits!
         editor.commit();
     }
     @Override
