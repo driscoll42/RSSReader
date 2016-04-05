@@ -19,7 +19,8 @@
         android:ems="10"
         android:id="@+id/addedLink"
         android:layout_below="@+id/btnPS4"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:hint="Custom Feed" />
 
     <TextView
         android:layout_width="wrap_content"

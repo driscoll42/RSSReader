@@ -1,6 +1,7 @@
 package com.example.android.rssreader;
 
 import android.app.AlertDialog;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -27,16 +28,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button btnAddLink;
     private EditText addedLink;
     private ListView listApps;
+    public static final String MyPREFERENCES = "MyPrefs" ;
+    SharedPreferences sharedpreferences;
+    public static final String URLKey = "urlKey";
+    public static String restoredText = "";
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        addedLink = (EditText) findViewById(R.id.addedLink);
+
+        sharedpreferences = getSharedPreferences(MyPREFERENCES, 0);
+        restoredText = sharedpreferences.getString(URLKey, null);
+
+        addedLink.setText(restoredText);
 
         listApps = (ListView) findViewById(R.id.xmlListView);
-
-        addedLink = (EditText) findViewById(R.id.addedLink);
 
         Button btnAddLink = (Button) findViewById(R.id.btnAddLink);
         btnAddLink.setOnClickListener(this);
@@ -53,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
         switch (v.getId()) {
-
+            //TODO: Fix the odd timing issue requiring two presses to get the data
             case R.id.btnPS4:
                 new DownloadData().execute("http://feeds.ign.com/IGNPS4All?format=xml");
                 ParseApplications parsePS4 = new ParseApplications(mFileContents);
@@ -81,6 +90,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     // Display the alert dialog on interface
                     dialog.show();
                 }
+
+
+
                 ParseApplications parseAddedLink = new ParseApplications(mFileContents);
                 parseAddedLink.process();
                 ArrayAdapter<Application> arrayAdapterAddLink = new ArrayAdapter<Application>(
@@ -93,6 +105,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    @Override
+    protected void onStop(){
+        super.onStop();
+
+        // We need an Editor object to make preference changes.
+        // All objects are from android.context.Context
+        sharedpreferences = getSharedPreferences(MyPREFERENCES, 0);
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.putString(URLKey, addedLink.getText().toString());
+        editor.commit();
+
+        // Commit the edits!
+        editor.commit();
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
