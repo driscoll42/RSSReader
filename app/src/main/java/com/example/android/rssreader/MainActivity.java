@@ -1,5 +1,6 @@
 package com.example.android.rssreader;
 
+import android.app.AlertDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +12,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void onClick(View v) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
         switch (v.getId()) {
 
@@ -70,8 +73,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.btnAddLink:
-                //TODO: Add some sort of check if a valid link, if not display an alert or such
+                //http://feeds.ign.com/ign/wii-u-all?format=xml
                 new DownloadData().execute(addedLink.getText().toString());
+                if(mFileContents == null) {
+                    Toast.makeText(getApplicationContext(),"Invalid URL", Toast.LENGTH_SHORT).show();
+                    AlertDialog dialog = builder.create();
+                    // Display the alert dialog on interface
+                    dialog.show();
+                }
                 ParseApplications parseAddedLink = new ParseApplications(mFileContents);
                 parseAddedLink.process();
                 ArrayAdapter<Application> arrayAdapterAddLink = new ArrayAdapter<Application>(
