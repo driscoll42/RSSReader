@@ -18,9 +18,20 @@
         android:inputType="textUri"
         android:ems="10"
         android:id="@+id/addedLink"
-        android:layout_below="@+id/btnPS4"
+        android:layout_below="@+id/btnDispCat"
         android:layout_centerHorizontal="true"
         android:hint="Custom Feed" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:ems="10"
+        android:id="@+id/addedCategory"
+        android:layout_below="@+id/addedLink"
+        android:layout_centerHorizontal="true"
+        android:hint="Category of new Feed" />
+
 
     <TextView
         android:layout_width="wrap_content"
@@ -33,12 +44,13 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="PS4"
-        android:id="@+id/btnPS4"
-        android:layout_below="@+id/textView"
+        android:text="Disp Cat"
+        android:id="@+id/btnDispCat"
+        android:layout_below="@+id/spnCategory"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="33dp" />
+        android:layout_toStartOf="@+id/btnDispData"
+        android:layout_toLeftOf="@+id/btnDispData" />
 
     <ListView
         android:layout_width="wrap_content"
@@ -46,26 +58,62 @@
         android:id="@+id/xmlListView"
         android:layout_alignParentLeft="false"
         android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="@+id/btnPS4"
-        android:layout_below="@+id/addedLink" />
+        android:layout_alignParentRight="@+id/btnDispCat"
+        android:layout_below="@+id/addedCategory" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Xbox One"
-        android:id="@+id/btnXBone"
+        android:text="Disp Link"
+        android:id="@+id/btnDispData"
+        android:layout_alignTop="@+id/btnSaved"
+        android:layout_toLeftOf="@+id/btnSaved"
+        android:layout_toStartOf="@+id/btnSaved" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Saved"
+        android:id="@+id/btnSaved"
         android:layout_above="@+id/addedLink"
-        android:layout_centerHorizontal="true" />
+        android:layout_toLeftOf="@+id/btnAddLink"
+        android:layout_toStartOf="@+id/btnAddLink" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="add Link"
         android:id="@+id/btnAddLink"
-        android:layout_alignTop="@+id/btnXBone"
+        android:layout_alignTop="@+id/btnSaved"
         android:layout_alignRight="@+id/addedLink"
         android:layout_alignEnd="@+id/addedLink" />
+
+    <Spinner
+        android:id="@+id/spnCategory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:drawable/btn_dropdown"
+        android:spinnerMode="dropdown"
+        android:layout_alignBottom="@+id/spnFeeds"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_toLeftOf="@+id/btnSaved"
+        android:layout_toStartOf="@+id/btnSaved" />
+
+    <Spinner
+        android:id="@+id/spnFeeds"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:drawable/btn_dropdown"
+        android:spinnerMode="dropdown"
+        android:layout_marginTop="35dp"
+        android:layout_below="@+id/textView"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignLeft="@+id/btnSaved"
+        android:layout_alignStart="@+id/btnSaved" />
+
+
 
 
 </RelativeLayout>

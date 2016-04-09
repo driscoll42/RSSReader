@@ -1,7 +1,5 @@
 package com.example.android.rssreader;
 
-import android.util.Log;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
@@ -41,11 +39,8 @@ public class ParseFeedData {
         FeedData currentRecord = null;
         boolean inItem = false;
         String textValue = "";
+        String currTitle = "";
         Realm realm = Realm.getDefaultInstance();
-        realm.beginTransaction();
-        FeedData test = realm.createObject(FeedData.class);
-        FeedList person = realm.createObject(FeedList.class);
-        realm.commitTransaction();
 
         try {
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
@@ -61,12 +56,13 @@ public class ParseFeedData {
                         // Log.d("ParseFeedData", "Starting tag for " + tagName);
                         if (tagName.equalsIgnoreCase("item")) {
                             inItem = true;
-                            currentRecord = new FeedData();
+                            realm.beginTransaction();
+                            //currentRecord = new FeedData();
+                            currentRecord = realm.createObject(FeedData.class);
                             if (this.feedLink != null) {
                                 currentRecord.setCategory(this.feedCategory);
                                 currentRecord.setFeedLink(this.feedLink);
                             }
-                            realm.beginTransaction();
                             break;
                         }
                     case XmlPullParser.TEXT:
@@ -77,23 +73,22 @@ public class ParseFeedData {
                         //       Log.d("ParseFeedData", "Ending tag for " + tagName);
                         if (inItem) {
                             if (tagName.equalsIgnoreCase("item")) {
+                                FeedData feedItems = realm.where(FeedData.class).equalTo(FeedData.TITLE, currTitle).findFirst();
+                                if(feedItems == null ){
                                 feedDatas.add(currentRecord);
-                                person.getFeedLists().add(test);
+                                }
                                 realm.commitTransaction();
                                 inItem = false;
 
                             } else if (tagName.equalsIgnoreCase("title")) {
                                 currentRecord.setTitle(textValue);
-                                test.setTitle(textValue);
+                                currTitle = textValue;
                             } else if (tagName.equalsIgnoreCase("link")) {
                                 currentRecord.setLink(textValue);
-                                test.setLink(textValue);
                             } else if (tagName.equalsIgnoreCase("description")) {
                                 currentRecord.setDescription(textValue);
-                                test.setDescription(textValue);
                             } else if (tagName.equalsIgnoreCase("pubDate")) {
                                 currentRecord.setPubDate(textValue);
-                                test.setPubDate(textValue);
                             }
                         }
 
@@ -110,13 +105,13 @@ public class ParseFeedData {
             e.printStackTrace();
         }
 
-        for (FeedData app : feedDatas) {
+        /*for (FeedData app : feedDatas) {
             Log.d("ParseFeedData", "*************");
             Log.d("ParseFeedData", "Title: " + app.getTitle());
             Log.d("ParseFeedData", "Link: " + app.getLink());
             Log.d("ParseFeedData", "Description: " + app.getDescription());
             Log.d("ParseFeedData", "PubDate: " + app.getPubDate());
-        }
+        }*/
         return true;
     }
 }

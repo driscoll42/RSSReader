@@ -8,6 +8,10 @@ import io.realm.annotations.Index;
  */
 public class FeedData extends RealmObject {
     public static final String TITLE = "title";
+    public static final String SAVED = "saved";
+    public static final String CATEGORY = "category";
+    public static final String FEEDLINK = "feedLink";
+
 
     @Index
     private String title;
@@ -18,11 +22,13 @@ public class FeedData extends RealmObject {
     @Index
     private boolean saved;
 
+    @Index
+    private String feedLink;
 
     private String link;
     private String description;
     private String pubDate;
-    private String feedLink;
+
 
 
     public FeedData(String title, String link, String description, String pubDate, String feedLink, String category, boolean saved) {
