@@ -20,6 +20,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
+import io.realm.RealmResults;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private String mFileContents;
@@ -28,19 +33,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button btnAddLink;
     private EditText addedLink;
     private ListView listApps;
-    public static final String MyPREFERENCES = "MyPrefs" ;
+    public static final String MyPREFERENCES = "MyPrefs";
     SharedPreferences sharedpreferences;
     public static final String URLKey = "urlKey";
     public static String restoredText = "";
-
+    private Realm realm;
+    private RealmConfiguration realmConfig;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // These operations are small enough that
+        // we can generally safely run them on the UI thread.
+
+        // Create the Realm configuration
+        realmConfig = new RealmConfiguration.Builder(this).build();
+        //Realm.deleteRealm(realmConfig);
+        Realm.setDefaultConfiguration(realmConfig);
+        // Open the Realm for the UI thread.
+        realm = Realm.getInstance(realmConfig);
+
+
         addedLink = (EditText) findViewById(R.id.addedLink);
 
-        listApps = (ListView) findViewById(R.id.xmlListView);
 
         Button btnAddLink = (Button) findViewById(R.id.btnAddLink);
         btnAddLink.setOnClickListener(this);
@@ -56,14 +73,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onResume() {
         super.onResume();  // Always call the superclass method first
+        listApps = (ListView) findViewById(R.id.xmlListView);
 
         sharedpreferences = getSharedPreferences(MyPREFERENCES, 0);
         restoredText = sharedpreferences.getString(URLKey, null);
 
         addedLink.setText(restoredText);
+        RealmResults<FeedData> realmData = realm.where(FeedData.class).findAll();
+        ArrayList<FeedData> myList = new ArrayList<FeedData>();
 
+        // Load from file "cities.json" first time
+        if (realmData != null) {
+
+            for (FeedData test : realmData) {
+                if (test.getTitle() != null) {
+                    FeedData temp = new FeedData(test.getTitle(),
+                            test.getLink(),
+                            test.getDescription(),
+                            test.getPubDate(),
+                            test.getFeedLink(),
+                            test.getCategory(),
+                            test.isSaved());
+                    myList.add(temp);
+                }
+            }
+
+            ArrayAdapter<FeedData> arrayAdapterLoadedData = new ArrayAdapter<FeedData>(
+                    MainActivity.this, R.layout.list_item, myList);
+            listApps.setAdapter(arrayAdapterLoadedData);
+
+        }
     }
-
 
 
     public void onClick(View v) {
@@ -73,38 +113,60 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //TODO: Fix the odd timing issue requiring two presses to get the data
             case R.id.btnPS4:
                 new DownloadData().execute("http://feeds.ign.com/IGNPS4All?format=xml");
-                ParseApplications parsePS4 = new ParseApplications(mFileContents);
+                ArrayList<FeedData> myList = new ArrayList<FeedData>();
+                ParseFeedData parsePS4 = new ParseFeedData(mFileContents, "http://feeds.ign.com/IGNPS4All?format=xml", "PS4");
                 parsePS4.process();
-                ArrayAdapter<Application> arrayAdapter = new ArrayAdapter<Application>(
-                        MainActivity.this, R.layout.list_item, parsePS4.getApplications());
+
+                Realm realm = Realm.getInstance(realmConfig);
+                RealmResults<FeedData> PS4Data = realm.distinct(FeedData.class, "title");
+
+                for (FeedData data : PS4Data) {
+                    FeedData feedItems = realm.where(FeedData.class).equalTo(FeedData.TITLE, data.getTitle()).findFirst();
+                    if (data.getTitle() != null) {
+                        FeedData temp = new FeedData(feedItems.getTitle(),
+                                feedItems.getLink(),
+                                feedItems.getDescription(),
+                                feedItems.getPubDate(),
+                                feedItems.getFeedLink(),
+                                feedItems.getCategory(),
+                                feedItems.isSaved());
+                        myList.add(temp);
+                    }
+                }
+
+                ArrayAdapter<FeedData> arrayAdapter = new ArrayAdapter<FeedData>(
+                        MainActivity.this, R.layout.list_item, myList);
                 listApps.setAdapter(arrayAdapter);
                 break;
 
             case R.id.btnXBone:
+
                 new DownloadData().execute("http://feeds.ign.com/IGNXboxOneAll?format=xml");
-                ParseApplications parseXBone = new ParseApplications(mFileContents);
+                ParseFeedData parseXBone = new ParseFeedData(mFileContents);
                 parseXBone.process();
-                ArrayAdapter<Application> arrayAdapterXbone = new ArrayAdapter<Application>(
-                        MainActivity.this, R.layout.list_item, parseXBone.getApplications());
+                ArrayAdapter<FeedData> arrayAdapterXbone = new ArrayAdapter<FeedData>(
+                        MainActivity.this, R.layout.list_item, parseXBone.getFeedDatas());
                 listApps.setAdapter(arrayAdapterXbone);
+                realm = Realm.getInstance(realmConfig);
+                realm.beginTransaction();
+                realm.clear(FeedData.class);
+                realm.commitTransaction();
                 break;
 
             case R.id.btnAddLink:
                 //http://feeds.ign.com/ign/wii-u-all?format=xml
                 new DownloadData().execute(addedLink.getText().toString());
-                if(mFileContents == null) {
-                    Toast.makeText(getApplicationContext(),"Invalid URL", Toast.LENGTH_SHORT).show();
+                if (mFileContents == null) {
+                    Toast.makeText(getApplicationContext(), "Invalid URL", Toast.LENGTH_SHORT).show();
                     AlertDialog dialog = builder.create();
                     // Display the alert dialog on interface
                     dialog.show();
                 }
 
-
-
-                ParseApplications parseAddedLink = new ParseApplications(mFileContents);
+                ParseFeedData parseAddedLink = new ParseFeedData(mFileContents);
                 parseAddedLink.process();
-                ArrayAdapter<Application> arrayAdapterAddLink = new ArrayAdapter<Application>(
-                        MainActivity.this, R.layout.list_item, parseAddedLink.getApplications());
+                ArrayAdapter<FeedData> arrayAdapterAddLink = new ArrayAdapter<FeedData>(
+                        MainActivity.this, R.layout.list_item, parseAddedLink.getFeedDatas());
                 listApps.setAdapter(arrayAdapterAddLink);
                 break;
 
@@ -114,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    protected void onPause(){
+    protected void onPause() {
         super.onPause();
 
         // We need an Editor object to make preference changes.
@@ -123,7 +185,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         SharedPreferences.Editor editor = sharedpreferences.edit();
         editor.putString(URLKey, addedLink.getText().toString());
         editor.commit();
+        realm.close();
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close(); // Remember to close Realm when done.\
+      //  Realm.deleteRealm(realmConfig);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -152,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         protected String doInBackground(String... params) {
             mFileContents = downloadXMLFile(params[0]);
-            if(mFileContents == null) {
+            if (mFileContents == null) {
                 Log.d("DownloadData", "Error downloading");
             }
             return mFileContents;
@@ -164,7 +235,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Log.d("DownloadData", "Result was: " + result);
         }
     }
-
 
 
     private String downloadXMLFile(String urlPath) {
@@ -179,16 +249,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             int charRead;
             char[] inputBuffer = new char[500];
-            while(true){
+            while (true) {
                 charRead = isr.read(inputBuffer);
-                if(charRead <= 0) {
+                if (charRead <= 0) {
                     break;
                 }
                 tempBuffer.append(String.copyValueOf(inputBuffer, 0, charRead));
             }
             return tempBuffer.toString();
 
-        } catch (IOException e){
+        } catch (IOException e) {
             Log.d("DownloadData", "IOException reading data:" + e.getMessage());
             e.printStackTrace();
         } catch (SecurityException e) {
@@ -198,3 +268,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return null;
     }
 }
+
+
+
